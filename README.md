@@ -17,7 +17,7 @@ A secure, high-performance, and lightweight backend authentication service built
 *   **Framework:** Spring Boot (Spring Web, Spring Security)
 *   **Data Management:** Spring Data JPA / Hibernate
 *   **Security & Identity:** `io.jsonwebtoken` (jjwt) for stateless tokens
-*   **Database:** *[Insert your database here, e.g., PostgreSQL / MySQL / H2]*
+*   **Database:** *H2*
 
 ---
 
@@ -52,3 +52,15 @@ A secure, high-performance, and lightweight backend authentication service built
 ```bash
    git clone https://github.com/Sukesh-Raj/sentinelAuth.git
    cd sentinelAuth
+```
+2. Configure your environment variables in src/main/resources/application.properties:
+
+   spring.datasource.url=jdbc:[your-db-url-here]\
+   spring.datasource.username=[your-username]\
+   spring.datasource.password=[your-password]
+
+3. Build and run the application:
+```bash
+   mvn clean install
+   mvn spring-boot:run
+```
