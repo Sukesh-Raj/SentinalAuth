@@ -8,4 +8,5 @@ import org.springframework.stereotype.Service;
 public interface AuthService {
     String registerUser(String username,String password);
     ResponseEntity<AuthResponse> authenticateUser(String username, String password);
+    ResponseEntity<AuthResponse> refresh(String token);
 }

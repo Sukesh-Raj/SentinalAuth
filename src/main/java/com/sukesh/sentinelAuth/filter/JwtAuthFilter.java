@@ -51,8 +51,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             if(jwtUtils.validateToken(token,userDetails,userId))
             {
                 System.out.println("inside securitycontext");
-                UsernamePasswordAuthenticationToken authToken =
-                        UsernamePasswordAuthenticationToken.authenticated(
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                                 userDetails,
                                 null,
                                 null// Make sure this isn't returning a null value

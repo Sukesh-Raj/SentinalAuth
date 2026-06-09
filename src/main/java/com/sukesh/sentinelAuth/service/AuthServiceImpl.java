@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -59,11 +60,55 @@ public class AuthServiceImpl implements AuthService{
         Optional<Users> user = usersRepository.findByName(username);
         String accessToken = jwtUtils.generateAccessToken(String.valueOf(user.get().getUserId()));
         String refreshToken = jwtUtils.generateRefreshToken(String.valueOf(user.get().getUserId()));
-        RefreshTokens token = new RefreshTokens(user.get(),refreshToken,jwtUtils.getExpirationTime(refreshToken));
+        RefreshTokens token = new RefreshTokens(user.get(),jwtUtils.getJTI(refreshToken),jwtUtils.getExpirationTime(refreshToken));
         refreshTokensRepository.save(token);
-        user.get().getRefreshTokens().add(token);
-        usersRepository.save(user.get());
+        //user.get().getRefreshTokens().add(token);
+        //usersRepository.save(user.get());
         AuthResponse authResponse = new AuthResponse(accessToken,refreshToken);
+        return ResponseEntity.ok(authResponse);
+    }
+
+    @Override
+    public ResponseEntity<AuthResponse> refresh(String token) {
+        String tokenId = jwtUtils.getJTI(token);
+        String userId  = jwtUtils.getSubject(token);
+
+        RefreshTokens dbToken = refreshTokensRepository.findByToken(tokenId)
+                .orElseThrow(() -> new SecurityException("Invalid Refresh Token"));
+
+        if (!userId.equals(String.valueOf(dbToken.getUser().getUserId()))) {
+            throw new SecurityException("Token ownership mismatch");
+        }
+
+
+        if (dbToken.isUsed() || jwtUtils.isExpired(token)) {
+            System.out.println("🔥 ALERT: Replay attack or expired token reuse detected for User ID: " + userId);
+
+
+            refreshTokensRepository.revokeAllTokensByUserId(dbToken.getUser().getUserId());
+
+            SecurityContextHolder.clearContext();
+            throw new SecurityException("Security breach detected. All active sessions have been invalidated.");
+        }
+
+
+        dbToken.setUsed(true);
+        refreshTokensRepository.save(dbToken);
+
+
+        Users user = dbToken.getUser();
+
+        String accessToken = jwtUtils.generateAccessToken(String.valueOf(user.getUserId()));
+        String refreshToken = jwtUtils.generateRefreshToken(String.valueOf(user.getUserId()));
+
+        RefreshTokens newToken = new RefreshTokens(
+                user,
+                jwtUtils.getJTI(refreshToken),
+                jwtUtils.getExpirationTime(refreshToken)
+        );
+        refreshTokensRepository.save(newToken);
+
+        AuthResponse authResponse = new AuthResponse(accessToken, refreshToken);
         return ResponseEntity.ok(authResponse);
     }
 

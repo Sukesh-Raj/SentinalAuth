@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtUtils {
@@ -30,7 +31,9 @@ public class JwtUtils {
 
     public String generateRefreshToken(String userId)
     {
+        String tokenId = UUID.randomUUID().toString();
         return Jwts.builder()
+                .setId(tokenId)
                 .setSubject(userId)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis()+refreshTokenExpirationTime))
@@ -45,7 +48,10 @@ public class JwtUtils {
                 .parseClaimsJws(token)
                 .getBody();
     }
-
+    public String getJTI(String token)
+    {
+        return extractClaims(token).getId();
+    }
     public Instant getExpirationTime(String token)
     {
         return extractClaims(token).getExpiration().toInstant();
