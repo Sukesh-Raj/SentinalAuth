@@ -73,7 +73,7 @@ public class Users implements UserDetails {
 
     @Override
     public String getUsername() {
-        return this.name;
+        return String.valueOf(this.userId);
     }
 
     @Override

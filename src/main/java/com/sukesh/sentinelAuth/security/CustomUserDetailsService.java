@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
+@Component
 public class CustomUserDetailsService implements UserDetailsService {
 
     @Autowired
@@ -21,6 +22,13 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return usersRepository.findByName(username).orElseThrow(()->{
             throw new UsernameNotFoundException("User not found");
+        });
+    }
+
+    public UserDetails loadUserByUserId(String userId) throws UsernameNotFoundException
+    {
+        return usersRepository.findById(Long.parseLong(userId)).orElseThrow(()->{
+            throw new UsernameNotFoundException("user not found");
         });
     }
 }

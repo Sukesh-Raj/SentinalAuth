@@ -60,4 +60,14 @@ public class RefreshTokens {
     public void setExpiredAt(Instant expiredAt) {
         this.expiredAt = expiredAt;
     }
+    public RefreshTokens()
+    {
+
+    }
+    public RefreshTokens(Users user, String token, Instant expiredAt) {
+        this.user = user;
+        this.token = token;
+        this.isUsed = false;
+        this.expiredAt = expiredAt;
+    }
 }
