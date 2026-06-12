@@ -36,6 +36,7 @@ A secure, high-performance, and lightweight backend authentication service built
 | **POST** | `/api/auth/register` | Registers a new user account | ❌ No |
 | **POST** | `/api/auth/login` | Authenticates credentials & returns JWT | ❌ No |
 | **POST** | `/api/auth/refresh` | Rotates expired access tokens using a refresh token | ❌ No |
+| **POST** | `/api/auth/logout` | Revokes tokens and clears security context | 🔑 Yes |
 | **GET** | `/api/check` | A sample endpoint | 🔑 Yes |
 
 ---
