@@ -46,3 +46,4 @@ Thumbs.db
 ### Temporary ###
 *.tmp
 *.swp
+/src/main/resources/application.properties
