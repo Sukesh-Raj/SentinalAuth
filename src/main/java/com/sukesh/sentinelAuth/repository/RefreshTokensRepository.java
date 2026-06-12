@@ -15,6 +15,6 @@ public interface RefreshTokensRepository extends JpaRepository<RefreshTokens,Lon
     Optional<RefreshTokens> findByToken(String token);
 
     @Modifying
-    @Query("update RefreshTokens r set r.isUsed=true where user.userId = :id and r.isUsed=false")
+    @Query("update RefreshTokens r set r.isUsed=true where r.user.userId = :id and r.isUsed=false")
     void revokeAllTokensByUserId(@Param("id") Long id);
 }

@@ -2,6 +2,7 @@ package com.sukesh.sentinelAuth.controller;
 
 import com.sukesh.sentinelAuth.dto.AuthRequest;
 import com.sukesh.sentinelAuth.dto.AuthResponse;
+import com.sukesh.sentinelAuth.dto.LogoutRequest;
 import com.sukesh.sentinelAuth.dto.RefreshRequest;
 import com.sukesh.sentinelAuth.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,15 +26,21 @@ public class AuthController {
         return authService.registerUser(authRequest.getUsername(), authRequest.getPassword());
     }
 
-    @GetMapping("/authenticate")
+    @PostMapping("/authenticate")
     public ResponseEntity<AuthResponse> authenticateUser(@RequestBody AuthRequest authRequest)
     {
         return authService.authenticateUser(authRequest.getUsername(), authRequest.getPassword());
     }
 
-    @GetMapping("/refresh")
+    @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refresh(@RequestBody RefreshRequest refreshToken)
     {
         return authService.refresh(refreshToken.getRefreshToken());
     }
+
+    public String logout(@RequestBody LogoutRequest logoutRequest)
+    {
+        return authService.logoutUser(logoutRequest.getRefreshToken());
+    }
+
 }

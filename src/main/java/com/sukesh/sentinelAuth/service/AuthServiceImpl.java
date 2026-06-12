@@ -6,6 +6,7 @@ import com.sukesh.sentinelAuth.entity.Users;
 import com.sukesh.sentinelAuth.repository.RefreshTokensRepository;
 import com.sukesh.sentinelAuth.repository.UsersRepository;
 import com.sukesh.sentinelAuth.util.JwtUtils;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -37,6 +38,7 @@ public class AuthServiceImpl implements AuthService{
     }
 
     @Override
+    @Transactional
     public String registerUser(String username,String password) {
 
         Optional<Users> user = usersRepository.findByName(username);
@@ -52,6 +54,7 @@ public class AuthServiceImpl implements AuthService{
     }
 
     @Override
+    @Transactional
     public ResponseEntity<AuthResponse> authenticateUser(String username, String password)
     {
         authenticationManager.authenticate(
@@ -69,6 +72,7 @@ public class AuthServiceImpl implements AuthService{
     }
 
     @Override
+    @Transactional
     public ResponseEntity<AuthResponse> refresh(String token) {
         String tokenId = jwtUtils.getJTI(token);
         String userId  = jwtUtils.getSubject(token);
@@ -81,14 +85,19 @@ public class AuthServiceImpl implements AuthService{
         }
 
 
-        if (dbToken.isUsed() || jwtUtils.isExpired(token)) {
-            System.out.println("🔥 ALERT: Replay attack or expired token reuse detected for User ID: " + userId);
-
-
+        if (dbToken.isUsed()) {
+            System.out.println("CRITICAL ALERT: Token replay attack detected for User ID: " + userId);
             refreshTokensRepository.revokeAllTokensByUserId(dbToken.getUser().getUserId());
-
             SecurityContextHolder.clearContext();
+
             throw new SecurityException("Security breach detected. All active sessions have been invalidated.");
+        }
+
+
+        if (jwtUtils.isExpired(token)) {
+            System.out.println("Session expired naturally for User ID: " + userId);
+            SecurityContextHolder.clearContext();
+            throw new SecurityException("Session expired. Please log in again.");
         }
 
 
@@ -110,6 +119,35 @@ public class AuthServiceImpl implements AuthService{
 
         AuthResponse authResponse = new AuthResponse(accessToken, refreshToken);
         return ResponseEntity.ok(authResponse);
+    }
+
+    @Override
+    @Transactional
+    public String logoutUser(String token) {
+        String tokenId = jwtUtils.getJTI(token);
+        String userId  = jwtUtils.getSubject(token);
+        RefreshTokens dbToken = refreshTokensRepository.findByToken(tokenId)
+                .orElseThrow(() -> new SecurityException("Invalid Refresh Token"));
+
+        if (!userId.equals(String.valueOf(dbToken.getUser().getUserId()))) {
+            throw new SecurityException("Token ownership mismatch");
+        }
+
+        if (dbToken.isUsed()) {
+            refreshTokensRepository.revokeAllTokensByUserId(dbToken.getUser().getUserId());
+            SecurityContextHolder.clearContext();
+            throw new SecurityException("Security breach detected. All active sessions have been invalidated.");
+        }
+
+
+        if (jwtUtils.isExpired(token)) {
+            refreshTokensRepository.revokeAllTokensByUserId(dbToken.getUser().getUserId());
+            SecurityContextHolder.clearContext();
+            return "User Session Expired & Logged Out Successfully";
+        }
+        refreshTokensRepository.revokeAllTokensByUserId(dbToken.getUser().getUserId());
+        SecurityContextHolder.clearContext();
+        return "User Logout";
     }
 
 
